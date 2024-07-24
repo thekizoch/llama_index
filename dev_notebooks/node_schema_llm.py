@@ -3,11 +3,7 @@ from typing import Any, Dict, List, Union, Literal
 from llama_index.core.graph_stores.types import EntityNode, KG_NODES_KEY
 from llama_index.core.schema import BaseNode, TransformComponent
 from llama_index.core.prompts import PromptTemplate
-
-# from llama_index.core.llms.llm import LLM
-from llama_index_dev.core.llms.llm import LLM
-
-print(f"Imported LLM from: {LLM.__module__}")
+from llama_index.core.llms.llm import LLM
 from llama_index.core.async_utils import run_jobs
 from llama_index.core.bridge.pydantic import create_model, Field, validator
 
@@ -29,8 +25,9 @@ DEFAULT_ENTITY_PROPERTIES = {
 
 # original from schema_llm.py
 DEFAULT_SCHEMA_PATH_EXTRACT_PROMPT = PromptTemplate(
-    "Give the following text, extract the knowledge graph according to the provided schema. "
-    "Try to limit to the output {max_nodes_per_chunk} extracted paths.s\n"
+    "Given the following text, extract the knowledge graph according to the provided schema. "
+    "The e_properties field is a dict of properties of the entity based on type of entity. Only include properties that are valid."
+    "Try to limit the output to {max_nodes_per_chunk} extracted nodes.\n"
     "-------\n"
     "{text}\n"
     "-------\n"
@@ -71,7 +68,9 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
                     valid_props[prop_name] = v[prop_name]
             return valid_props
 
-        root = validator("properties", allow_reuse=True, pre=True)(validate_properties)
+        root = validator("e_properties", allow_reuse=True, pre=True)(
+            validate_properties
+        )
         entity_cls = create_model(
             "Entity",
             type=(
@@ -85,12 +84,12 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
                 ),
             ),
             name=(str, ...),
-            properties=(  # currently nothing is being extracted. its always empty
+            e_properties=(
                 Dict[str, Any],
                 Field(
                     default_factory=dict,
                     description=(
-                        "Properties of the entity based on its type. Only include properties that are valid: "
+                        "Dict of properties of the entity based on type of entity. Only include properties that are valid: "
                         + str(entity_properties)
                     ),
                 ),
@@ -98,7 +97,7 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
             __validators__={"validator1": root},
         )
 
-        # below works as
+        # below works as is
         #     ticker=(
         #         Optional[str],
         #         Field(
@@ -163,12 +162,12 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
             # print(f"Raw LLM output: {entities_schema}")
             # print(f"Type of entities_schema: {type(entities_schema)}")
             # print(f"Entities: {entities_schema.entities}")
-            for entity in entities_schema.entities:
-                print(f"Entity: {entity}")
-                # print(f"Entity Type: {entity.type}")
-                # print(f"Entity Name: {entity.name}")
-                # print(f"Entity Properties: {entity.properties}")
-                # print(f"Type of Entity Properties: {type(entity.properties)}")
+            # for entity in entities_schema.entities:
+            #     print(f"Entity: {entity}")
+            # print(f"Entity Type: {entity.type}")
+            # print(f"Entity Name: {entity.name}")
+            # print(f"Entity Properties: {entity.properties}")
+            # print(f"Type of Entity Properties: {type(entity.properties)}")
 
             nodes = self._prune_invalid_entities(entities_schema)
         except ValueError as e:

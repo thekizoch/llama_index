@@ -51,6 +51,7 @@ def _parse_tool_calls(
     verbose: bool = False,
 ) -> Union[Model, List[Model]]:
     outputs = []
+
     for tool_call in tool_calls:
         function_call = tool_call.function
         # validations to get passed mypy

@@ -39,8 +39,10 @@ def get_program_for_llm(
     **kwargs: Any,
 ) -> BasePydanticProgram:
     """Get a program based on the compatible LLM."""
+    # print(f"prompt passed to get_program_for_llm:\n{prompt}") ## to delete
     if pydantic_program_mode == PydanticProgramMode.DEFAULT:
         if llm.metadata.is_function_calling_model:
+            # print("llm is function calling model") ## to delete
             from llama_index.core.program.function_program import FunctionCallingProgram
 
             return FunctionCallingProgram.from_defaults(

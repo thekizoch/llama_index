@@ -154,7 +154,6 @@ class FunctionCallingProgram(BasePydanticProgram[BaseModel]):
                 f"Model name {llm.metadata.model_name} does not support "
                 "function calling API. "
             )
-
         if prompt is None and prompt_template_str is None:
             raise ValueError("Must provide either prompt or prompt_template_str.")
         if prompt is not None and prompt_template_str is not None:
@@ -216,6 +215,8 @@ class FunctionCallingProgram(BasePydanticProgram[BaseModel]):
         llm_kwargs = llm_kwargs or {}
         tool = _get_function_tool(self._output_cls)
 
+        print("tool metadata: ", tool.metadata)  ## to delete
+        # print("prompt passed to apredict_and_call: ", self._prompt.format_messages(llm=self._llm, **kwargs)) ## to delete
         agent_response = await self._llm.apredict_and_call(
             [tool],
             chat_history=self._prompt.format_messages(llm=self._llm, **kwargs),
@@ -223,6 +224,7 @@ class FunctionCallingProgram(BasePydanticProgram[BaseModel]):
             allow_parallel_tool_calls=self._allow_parallel_tool_calls,
             **llm_kwargs,
         )
+        # print("agent_response within function_program.py: ", agent_response) ## to delete
         return _parse_tool_outputs(
             agent_response,
             allow_parallel_tool_calls=self._allow_parallel_tool_calls,
