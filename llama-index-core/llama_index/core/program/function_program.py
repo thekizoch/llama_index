@@ -224,7 +224,9 @@ class FunctionCallingProgram(BasePydanticProgram[BaseModel]):
             allow_parallel_tool_calls=self._allow_parallel_tool_calls,
             **llm_kwargs,
         )
-        # print("agent_response within function_program.py: ", agent_response) ## to delete
+        print(
+            "agent_response within function_program.py: ", agent_response
+        )  ## to delete
         return _parse_tool_outputs(
             agent_response,
             allow_parallel_tool_calls=self._allow_parallel_tool_calls,

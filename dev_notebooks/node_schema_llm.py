@@ -23,10 +23,10 @@ DEFAULT_ENTITY_PROPERTIES = {
     ],
 }
 
-# original from schema_llm.py
+
 DEFAULT_SCHEMA_PATH_EXTRACT_PROMPT = PromptTemplate(
     "Given the following text, extract the knowledge graph according to the provided schema. "
-    "The e_properties field is a dict of properties of the entity based on type of entity. Only include properties that are valid."
+    "The e_properties field is a dict of properties of the entity based on type of entity. Only include properties that are valid:"
     "Try to limit the output to {max_nodes_per_chunk} extracted nodes.\n"
     "-------\n"
     "{text}\n"
@@ -55,8 +55,6 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
             extract_prompt = PromptTemplate(extract_prompt)
 
         possible_entities = Literal[tuple(entity_properties.keys())]
-
-        print(f"entity_properties: {entity_properties}")
 
         def validate_properties(v: Any) -> Dict[str, Any]:
             entity_type = v["type"]
