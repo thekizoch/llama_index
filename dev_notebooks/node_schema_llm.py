@@ -10,7 +10,6 @@ from llama_index.core.bridge.pydantic import create_model, Field
 DEFAULT_ENTITY_PROPERTIES = {
     "PERSON": [
         {"property": "profession", "type": "STRING"},
-        {"property": "role", "type": "STRING"},
     ],
     "PRODUCT": [
         {"property": "price", "type": "STRING"},
@@ -24,12 +23,16 @@ DEFAULT_ENTITY_PROPERTIES = {
 }
 
 DEFAULT_RELATION_PROPERTIES = {
-    "USED_BY": [
-        {"property": "profession", "type": "STRING"},
+    "WORKED_ON": [
         {"property": "role", "type": "STRING"},
     ],
+    "HAS": [
+        {"property": "duration", "type": "STRING"},
+    ],
+    "LOCATED_IN": [
+        {"property": "since", "type": "STRING"},
+    ],
 }
-
 
 DEFAULT_SCHEMA_PATH_EXTRACT_PROMPT = PromptTemplate(
     "Given the following text, extract the knowledge graph according to the provided schema. "

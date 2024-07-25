@@ -777,11 +777,9 @@ class LLM(BaseLLM):
         from llama_index.core.agent.types import Task
         from llama_index.core.chat_engine.types import AgentChatResponse
         from llama_index.core.memory import ChatMemoryBuffer
-        import logging
 
-        logging.basicConfig(level=logging.DEBUG)
-        logging.info("apredict_and_call called")
         print("apredict_and_call called")
+
         worker = ReActAgentWorker(
             tools,
             llm=self,
@@ -811,17 +809,8 @@ class LLM(BaseLLM):
         )
         step = worker.initialize_step(task)
 
-        ## Debug: Print the chat history
-        print("Chat History:")
-        for msg in chat_history:
-            print(f"Role: {msg.role}, Content: {msg.content}")
-
-        ## Debug: Print the user message
-        print(f"User Message: {user_msg}")
-
         try:
             output = (await worker.arun_step(step, task)).output
-            print(f"output: {output}")
             # react agent worker inserts a "Observation: " prefix to the response
             if output.response and output.response.startswith("Observation: "):
                 output.response = output.response.replace("Observation: ", "")
