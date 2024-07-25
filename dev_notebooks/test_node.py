@@ -27,7 +27,8 @@ from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 
 # llm = OpenAI(model="gpt-3.5-turbo")
-llm = OpenAI(model="gpt-4")
+# llm = OpenAI(model="gpt-4o")
+llm = OpenAI(model="gpt-4o-mini")
 embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 
 from node_schema_llm import NodeSchemaLLMPathExtractor

@@ -5,7 +5,7 @@ from llama_index.core.schema import BaseNode, TransformComponent
 from llama_index.core.prompts import PromptTemplate
 from llama_index.core.llms.llm import LLM
 from llama_index.core.async_utils import run_jobs
-from llama_index.core.bridge.pydantic import create_model, Field, validator
+from llama_index.core.bridge.pydantic import create_model, Field
 
 DEFAULT_ENTITY_PROPERTIES = {
     "PERSON": [
@@ -23,10 +23,17 @@ DEFAULT_ENTITY_PROPERTIES = {
     ],
 }
 
+DEFAULT_RELATION_PROPERTIES = {
+    "USED_BY": [
+        {"property": "profession", "type": "STRING"},
+        {"property": "role", "type": "STRING"},
+    ],
+}
+
 
 DEFAULT_SCHEMA_PATH_EXTRACT_PROMPT = PromptTemplate(
     "Given the following text, extract the knowledge graph according to the provided schema. "
-    "For each extracted entity, include the following properties if available in the text:\n"
+    "For each extracted entity, include the following properties if available in the text, otherwise exclude them:\n"
     "-------\n"
     "{entity_properties}\n"
     "-------\n"
@@ -70,16 +77,10 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
                     valid_props[prop_name] = v[prop_name]
             return valid_props
 
-        root = validator("e_properties", allow_reuse=True, pre=True)(
-            validate_properties
-        )
-
         properties = {}
         for props in DEFAULT_ENTITY_PROPERTIES.values():
             for prop in props:
                 properties[prop["property"]] = (Optional[str], None)
-
-        print(f"properties: {properties}")
 
         entity_cls = create_model(
             "Entity",
@@ -132,16 +133,6 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
                 entity_properties=self.entity_properties,
             )
 
-            # print(f"Raw LLM output: {entities_schema}")
-            # print(f"Type of entities_schema: {type(entities_schema)}")
-            # print(f"Entities: {entities_schema.entities}")
-            # for entity in entities_schema.entities:
-            #     print(f"Entity: {entity}")
-            # print(f"Entity Type: {entity.type}")
-            # print(f"Entity Name: {entity.name}")
-            # print(f"Entity Properties: {entity.properties}")
-            # print(f"Type of Entity Properties: {type(entity.properties)}")
-
             nodes = self._prune_invalid_entities(entities_schema)
         except ValueError as e:
             print(f"error in node schema llm: {e}")
@@ -165,7 +156,7 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
         )
 
     def _prune_invalid_entities(self, entities_schema: Any) -> List[EntityNode]:
-        """ "Prune invalid entities from the knowledge graph."""
+        """Prune invalid entities and entity properties from the knowledge graph."""
         assert isinstance(entities_schema, self.entities_schema_cls)
 
         valid_nodes = []
