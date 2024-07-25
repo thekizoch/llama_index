@@ -26,8 +26,8 @@ documents = [
 from llama_index.llms.openai import OpenAI
 from llama_index.embeddings.openai import OpenAIEmbedding
 
-llm = OpenAI(model="gpt-3.5-turbo")
-# llm = OpenAI(model='gpt-4o-mini')
+# llm = OpenAI(model="gpt-3.5-turbo")
+llm = OpenAI(model="gpt-4")
 embed_model = OpenAIEmbedding(model="text-embedding-3-small")
 
 from node_schema_llm import NodeSchemaLLMPathExtractor
@@ -38,7 +38,7 @@ kg_extractor = NodeSchemaLLMPathExtractor(
 )
 
 index = PropertyGraphIndex.from_documents(
-    documents[:3],
+    documents[:4],
     kg_extractors=[kg_extractor],
     llm=llm,
     embed_model=embed_model,

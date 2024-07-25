@@ -1,5 +1,5 @@
 import asyncio
-from typing import Any, Dict, List, Union, Literal
+from typing import Any, Dict, List, Union, Literal, Optional
 from llama_index.core.graph_stores.types import EntityNode, KG_NODES_KEY
 from llama_index.core.schema import BaseNode, TransformComponent
 from llama_index.core.prompts import PromptTemplate
@@ -26,8 +26,12 @@ DEFAULT_ENTITY_PROPERTIES = {
 
 DEFAULT_SCHEMA_PATH_EXTRACT_PROMPT = PromptTemplate(
     "Given the following text, extract the knowledge graph according to the provided schema. "
-    "The e_properties field is a dict of properties of the entity based on type of entity. Only include properties that are valid:"
+    "For each extracted entity, include the following properties if available in the text:\n"
+    "-------\n"
+    "{entity_properties}\n"
+    "-------\n"
     "Try to limit the output to {max_nodes_per_chunk} extracted nodes.\n"
+    "Text:\n"
     "-------\n"
     "{text}\n"
     "-------\n"
@@ -69,55 +73,25 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
         root = validator("e_properties", allow_reuse=True, pre=True)(
             validate_properties
         )
+
+        properties = {}
+        for props in DEFAULT_ENTITY_PROPERTIES.values():
+            for prop in props:
+                properties[prop["property"]] = (Optional[str], None)
+
+        print(f"properties: {properties}")
+
         entity_cls = create_model(
             "Entity",
             type=(
                 possible_entities,
                 Field(
                     ...,
-                    description=(
-                        "Entity in a knowledge graph. Only extract entities with types that are listed as valid: "
-                        + str(possible_entities)
-                    ),
                 ),
             ),
             name=(str, ...),
-            e_properties=(
-                Dict[str, Any],
-                Field(
-                    default_factory=dict,
-                    description=(
-                        "Dict of properties of the entity based on type of entity. Only include properties that are valid: "
-                        + str(entity_properties)
-                    ),
-                ),
-            ),
-            __validators__={"validator1": root},
+            **properties,
         )
-
-        # below works as is
-        #     ticker=(
-        #         Optional[str],
-        #         Field(
-        #             default=None,
-        #             description="Ticker symbol of the organization, if available."
-        #         )
-        #     ),
-        #     industry=(
-        #         Optional[str],
-        #         Field(
-        #             default=None,
-        #             description="Industry of the organization, if available."
-        #         )
-        #     ),
-        #     sector=(
-        #         Optional[str],
-        #         Field(
-        #             default=None,
-        #             description="Sector of the organization, if available."
-        #         )
-        #     )
-        # )
 
         entities_schema_cls = create_model(
             "EntitiesSchema",
@@ -155,6 +129,7 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
                 self.extract_prompt,
                 text=text,
                 max_nodes_per_chunk=self.max_nodes_per_chunk,
+                entity_properties=self.entity_properties,
             )
 
             # print(f"Raw LLM output: {entities_schema}")
@@ -196,17 +171,18 @@ class NodeSchemaLLMPathExtractor(TransformComponent):
         valid_nodes = []
         for entity in entities_schema.entities:
             entity_type = entity.type
-            entity_name = entity.name
-            # entity_properties = entity.properties
-
             # Validate entity type
             if entity_type not in self.entity_properties:
                 continue
 
+            props = {}
+            for prop_dict in self.entity_properties[entity_type]:
+                prop_name = prop_dict["property"]
+                if hasattr(entity, prop_name):
+                    props[prop_name] = getattr(entity, prop_name)
+
             entity_node = EntityNode(
-                label=entity_type,
-                name=entity_name,
-                # properties=entity_properties
+                label=entity_type, name=entity.name, properties=props
             )
             valid_nodes.append(entity_node)
 
