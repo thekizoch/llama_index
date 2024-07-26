@@ -9,10 +9,10 @@ skip = "*.csv,*.html,*.json,*.jsonl,*.pdf,*.txt,*.ipynb"
 
 [tool.llamahub]
 contains_example = false
-import_path = "llama_index.vector_stores.elasticsearch"
+import_path = "llama_index.embeddings.textembed"
 
 [tool.llamahub.class_authors]
-ElasticsearchStore = "llama-index"
+TextEmbed = "kevaldekivadiya2415"
 
 [tool.mypy]
 disallow_untyped_defs = true
@@ -21,19 +21,17 @@ ignore_missing_imports = true
 python_version = "3.8"
 
 [tool.poetry]
-authors = ["Your Name <you@example.com>"]
-description = "llama-index vector_stores elasticsearch integration"
+authors = ["Keval Dekivadiya <kevaldekivadiya2415@gmail.com>"]
+description = "Integration of TextEmbed with llama-index for embeddings."
 exclude = ["**/BUILD"]
 license = "MIT"
-name = "llama-index-vector-stores-elasticsearch"
+name = "llama-index-embeddings-textembed"
 readme = "README.md"
-version = "0.2.4"
+version = "0.0.1"
 
 [tool.poetry.dependencies]
 python = ">=3.8.1,<4.0"
 llama-index-core = "^0.10.1"
-elasticsearch = "^8.13.1"
-aiohttp = "^3.9.5"
 
 [tool.poetry.group.dev.dependencies]
 ipython = "8.10.0"
@@ -42,7 +40,6 @@ mypy = "0.991"
 pre-commit = "3.2.0"
 pylint = "2.15.10"
 pytest = "7.2.1"
-pytest-asyncio = "0.23.6"
 pytest-mock = "3.11.1"
 ruff = "0.0.292"
 tree-sitter-languages = "^1.8.0"
@@ -55,11 +52,11 @@ types-setuptools = "67.1.0.0"
 
 [tool.poetry.group.dev.dependencies.black]
 extras = ["jupyter"]
-version = "<=23.9.1,>=23.7.0"
+version = ">=23.7.0,<23.9.1"
 
 [tool.poetry.group.dev.dependencies.codespell]
 extras = ["toml"]
-version = ">=v2.2.6"
+version = ">=2.2.6"
 
 [[tool.poetry.packages]]
 include = "llama_index/"
