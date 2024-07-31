@@ -202,7 +202,12 @@ class SchemaLLMPathExtractor(TransformComponent):
                         # validate, skip if invalid
                         _ = triplet_cls(**triplet)
                         passing_triplets.append(v[i])
-                    except (KeyError, ValueError):
+                        print(f"current triplet passed validation: {triplet}")
+                    # except (KeyError, ValueError): # original
+                    except (KeyError, ValueError) as e:  ##
+                        print(
+                            f"Triplet validation rejected: {triplet}. Reason: {e.json()}"
+                        )  ##
                         continue
 
                 return passing_triplets
@@ -317,6 +322,9 @@ class SchemaLLMPathExtractor(TransformComponent):
                         relation,
                         obj_type,
                     ) not in self.kg_validation_schema["relationships"]:
+                        print(
+                            f"triplet not in validation schema: {subject_type}, {relation}, {obj_type}"
+                        )
                         continue
                 else:
                     # Schema is the backwards-compat format
@@ -342,7 +350,7 @@ class SchemaLLMPathExtractor(TransformComponent):
                 properties=relation_props,
             )
             valid_triplets.append((subj_node, rel_node, obj_node))
-
+            print(f"num valid triplets: {len(valid_triplets)}")
         return valid_triplets
 
     async def _aextract(self, node: BaseNode) -> BaseNode:
@@ -357,6 +365,8 @@ class SchemaLLMPathExtractor(TransformComponent):
                 text=text,
                 max_triplets_per_chunk=self.max_triplets_per_chunk,
             )
+            print(f"kg_schema extracted: {kg_schema}")
+            print(f"num triplets extracted: {len(kg_schema.triplets)}")
             triplets = self._prune_invalid_triplets(kg_schema)
         except ValueError:
             triplets = []
